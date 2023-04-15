@@ -1,0 +1,3 @@
+# ninja log v5
+0	7183	1677384757338548398	/home/linda/Documents/project/polygondetect/utils/iou_cuda/build/temp.linux-x86_64-cpython-311/inter_union_cuda.o	163295a3b2820c75
+0	9000	1677384759154729382	/home/linda/Documents/project/polygondetect/utils/iou_cuda/build/temp.linux-x86_64-cpython-311/extensions.o	3a02af0f0f81cf5e

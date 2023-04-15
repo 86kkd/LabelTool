@@ -1,0 +1,170 @@
+
+ prediction.shape: torch.Size([3, 134505, 10])
+                 all        139        139      0.662      0.662      0.441      0.441
+
+     Epoch   gpu_mem       box       obj       cls     total    labels  img_size
+   173/299     7.84G   0.00121  0.000785         0  0.001995         1         3: 100%|██████████| 140/140 [00:47<00:00,  2.97it/s]
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:   6%|▌         | 1/18 [00:00<00:02,  7.65it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  17%|█▋        | 3/18 [00:00<00:02,  7.33it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  28%|██▊       | 5/18 [00:00<00:01,  6.95it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  39%|███▉      | 7/18 [00:00<00:01,  8.69it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  56%|█████▌    | 10/18 [00:01<00:00,  8.35it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  72%|███████▏  | 13/18 [00:01<00:00,  7.91it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  89%|████████▉ | 16/18 [00:02<00:00,  7.81it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([3, 134505, 10])
+                 all        139        139      0.662      0.662      0.441      0.441
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95: 100%|██████████| 18/18 [00:02<00:00,  8.35it/s]
+
+     Epoch   gpu_mem       box       obj       cls     total    labels  img_size
+   174/299     7.84G  0.001188 0.0007931         0  0.001981         1         3: 100%|██████████| 140/140 [00:49<00:00,  2.84it/s]
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:   0%|          | 0/18 [00:00<?, ?it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  11%|█         | 2/18 [00:00<00:01, 11.65it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  22%|██▏       | 4/18 [00:00<00:01, 11.20it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  33%|███▎      | 6/18 [00:00<00:01, 11.51it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  44%|████▍     | 8/18 [00:00<00:00, 11.18it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  56%|█████▌    | 10/18 [00:00<00:00, 11.22it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  67%|██████▋   | 12/18 [00:01<00:00, 11.47it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  78%|███████▊  | 14/18 [00:01<00:00, 11.30it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  89%|████████▉ | 16/18 [00:01<00:00, 11.19it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([3, 134505, 10])
+                 all        139        139      0.662      0.662      0.441      0.441
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95: 100%|██████████| 18/18 [00:01<00:00, 11.72it/s]
+
+     Epoch   gpu_mem       box       obj       cls     total    labels  img_size
+   175/299     7.84G 0.0009914 0.0008306         0  0.001822         2         3: 100%|██████████| 140/140 [00:46<00:00,  3.01it/s]
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:   0%|          | 0/18 [00:00<?, ?it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  11%|█         | 2/18 [00:00<00:01, 11.72it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  22%|██▏       | 4/18 [00:00<00:01, 11.14it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  33%|███▎      | 6/18 [00:00<00:01, 11.48it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  44%|████▍     | 8/18 [00:00<00:00, 11.16it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  56%|█████▌    | 10/18 [00:00<00:00, 11.14it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  67%|██████▋   | 12/18 [00:01<00:00, 10.11it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  78%|███████▊  | 14/18 [00:01<00:00, 10.66it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  89%|████████▉ | 16/18 [00:01<00:00, 10.72it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([3, 134505, 10])
+                 all        139        139      0.662      0.662      0.441      0.441
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95: 100%|██████████| 18/18 [00:01<00:00, 11.30it/s]
+
+     Epoch   gpu_mem       box       obj       cls     total    labels  img_size
+   176/299     7.84G  0.001503 0.0009323         0  0.002435         1         3: 100%|██████████| 140/140 [00:47<00:00,  2.97it/s]
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:   0%|          | 0/18 [00:00<?, ?it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  11%|█         | 2/18 [00:00<00:01, 11.94it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  22%|██▏       | 4/18 [00:00<00:01, 11.71it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  33%|███▎      | 6/18 [00:00<00:01, 11.82it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  44%|████▍     | 8/18 [00:00<00:00, 11.87it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  56%|█████▌    | 10/18 [00:00<00:00, 10.70it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  67%|██████▋   | 12/18 [00:01<00:00, 11.18it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  78%|███████▊  | 14/18 [00:01<00:00, 11.43it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([8, 134505, 10])
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95:  89%|████████▉ | 16/18 [00:01<00:00, 11.56it/s]
+ prediction.shape: torch.Size([8, 134505, 10])
+
+ prediction.shape: torch.Size([3, 134505, 10])
+                 all        139        139      0.662      0.662      0.441      0.441
+               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95: 100%|██████████| 18/18 [00:01<00:00, 11.91it/s]
+
+     Epoch   gpu_mem       box       obj       cls     total    labels  img_size
+   177/299     7.84G  0.001461 0.0007868         0  0.002247         4         3:  57%|█████▋    | 80/140 [00:27<00:20,  2.91it/s]
