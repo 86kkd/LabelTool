@@ -18,8 +18,11 @@ class DragSlider(QSlider):
         self.setTracking(True)  # 设置跟踪，即拖动过程中不断发出valueChanged信号
         self.setStyleSheet( #set default style sheet
             'QSlider::handle:horizontal {background-color: white; border: 1px solid black; width: 10px; margin: -3px 0;}')
-        
-        
+        self.valueChanged.connect(self.updata_img)
+        self.update_img_callback = None
+    def updata_img(self):
+        if self.update_img_callback:
+            self.update_img_callback()
 class ListWidget(QListWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
