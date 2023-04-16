@@ -95,109 +95,93 @@ def channel_sub(img_rgb, r, g, b, red_color):
     final_sub = cv2.dilate(final_sub, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))  # 膨胀
     return final_sub
 
-class cvDetect() :
-    def __init__(self) -> None:
-        
-        self.r_threshold = 50
-        self.g_threshold = 120
-        self.b_threshold = 240
-    def find(self,image, offset: QPointF=None) -> np.array:
-        # sourcery skip: hoist-statement-from-if, low-code-quality
-        """
-        @summary : 通过图片基本操作进行轮廓提取
-        @param image:
-        @param offset:
-        @return:
-        """
-        if type(image) == np.ndarray:
-            # 将图像转换为RGB颜色空间
-            img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        elif type(image) == QPixmap:
-            img_cv = qpixmap_to_cvimg(image)
-            img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
-        else:
-            raise 'input type error'
-        # 分割RGB通道
+
+
+def cvDetect(image, threoloads: dict,mode,offset: QPointF=None) -> np.array:
+    # sourcery skip: hoist-statement-from-if, low-code-quality
+    """
+    @summary : 通过图片基本操作进行轮廓提取
+    @param image:
+    @param offset:
+    @return:
+    """
+    if type(image) == np.ndarray:
+        # 将图像转换为RGB颜色空间
+        img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    elif type(image) == QPixmap:
+        img_cv = qpixmap_to_cvimg(image)
+        img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
+    else:
+        raise 'input type error' 
+    # 分割RGB通道
+    if mode == 'blue':
         r, g, b = cv2.split(img_rgb)  # 分离色彩通道
-        red_color = False
-        threshold = {'r': self.r_threshold, 'g': self.g_threshold, 'b': self.b_threshold}
-        #
-        r_th, g_th, b_th = channel_th(r, g, b, threshold)
-        c_sub = channel_sub(img_rgb, r, g, b, red_color=red_color)
-        # 定义结构元素
-        circle_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        b_th_o = cv2.morphologyEx(b_th, cv2.MORPH_OPEN, circle_kernel)  # 开运算
-        # cv2.imshow("b_th_o", b_th_o)
-        # cv2.imshow("r_th",r_th)
+    elif mode == 'red':
+        b, g, r = cv2.split(img_rgb) 
+    red_color = False
+    threshold = {'r': threoloads['red'], 'g': threoloads['green'], 'b': threoloads['blue']}
+    r_th, g_th, b_th = channel_th(r, g, b, threshold)
+    c_sub = channel_sub(img_rgb, r, g, b, red_color=red_color)
+    # 定义结构元素
+    circle_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    b_th_o = cv2.morphologyEx(b_th, cv2.MORPH_OPEN, circle_kernel)  # 开运算
+    # cv2.imshow("b_th_o", b_th_o)
+    # cv2.imshow("r_th",r_th)
+    b_and_g = b_th & g_th
+    b_and_g_o = cv2.morphologyEx(b_and_g, cv2.MORPH_OPEN, circle_kernel, iterations=3)  # 开运算
+    # cv2.imshow("b and g", b_and_g)
 
-        b_and_g = b_th & g_th
-        b_and_g_o = cv2.morphologyEx(b_and_g, cv2.MORPH_OPEN, circle_kernel, iterations=3)  # 开运算
-        # cv2.imshow("b and g", b_and_g)
+    final_img = b_and_g & cv2.bitwise_not(r_th)
+    # cv2.imshow("final img", final_img)
 
-        final_img = b_and_g & cv2.bitwise_not(r_th)
-        # cv2.imshow("final img", final_img)
-
-        contours, hierarchy = cv2.findContours(final_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        # 找到凸多边形并绘制
-        if len(contours) == 0:
-            return np.array([])
-        # 面积筛选
-        new_contours = []
-        for contour in contours:
-            if cv2.contourArea(contour) < 100:
-                continue
-            print(cv2.contourArea(contour))
-            # 外接矩形
-            x, y, w, h = cv2.boundingRect(contour)
-            rate = h / w
-            if rate <= 1.5:
-                print(rate)
-                # 在原图上画出预测的矩形
-                cv2.rectangle(img_rgb, (x, y), (x + w, y + h), (0, 0, 255), 10)
-                new_contours.append(contour)
-
+    contours, hierarchy = cv2.findContours(final_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # 找到凸多边形并绘制
+    if len(contours) == 0:
+        return None, None
+    # 面积筛选
+    new_contours = []
+    for contour in contours:
+        if cv2.contourArea(contour) < 100:
+            continue
+        print(cv2.contourArea(contour))
+        # 外接矩形
+        x, y, w, h = cv2.boundingRect(contour)
+        rate = h / w
+        if rate <= 1.5:
+            print(rate)
+            # 在原图上画出预测的矩形
+            cv2.rectangle(img_rgb, (x, y), (x + w, y + h), (0, 0, 255), 10)
+            new_contours.append(contour)
+    try:
         all_contours = np.concatenate(new_contours)
         hull = cv2.convexHull(all_contours)
-        if __name__ == "__main__":
-            cv2.drawContours(img_rgb, [hull], 0, (255, 255, 255), 1)
-            cv2.drawContours(g_th, [hull], 0, 255, 1)
-            cv2.drawContours(b_th, [hull], 0, 255, 1)
-            cv2.drawContours(r_th, [hull], 0, 255, 1)
-            cv2.imshow("r_th", cv2.bitwise_not(r_th))
-            cv2.imshow("g_th", g_th)
-            cv2.imshow("b_th", b_th)
-            cv2.imshow('contours', img_rgb)
-
-        # 用4条边的多边形逼近凸包
-        epsilon = 0.02 * cv2.arcLength(hull, True)
-        while True:
-            approx = cv2.approxPolyDP(hull, epsilon, True)
-            if len(approx) == 4:
-                four_edge_polys = approx
-                break
-            elif len(approx) < 4:
-                epsilon -= 1
-            elif len(approx) > 4:
-                return np.array([])
-
-        if __name__ == '__main__':
-            # 绘制最小矩形框
-            cv2.drawContours(image, [four_edge_polys], 0, (0, 0, 255), 1)
-            # cv2.imshow('result', image)
-            key_points = [four_edge_polys[3], four_edge_polys[2], four_edge_polys[1], four_edge_polys[0]]
-        else:
-            if offset:
-                offset = np.array([offset.x(), offset.y()])
-                four_edge_polys = np.squeeze(four_edge_polys)
-                four_edge_polys = four_edge_polys + offset
-            key_points = np.array([four_edge_polys[3], four_edge_polys[2], four_edge_polys[1], four_edge_polys[0]])
-        print(type(key_points))
-        thres = {
-            "r_th" : r_th,
-            "g_th" : g_th,
-            "b_th" : b_th
-        }
-        return key_points ,thres
+    except:
+        print("detect error: may be thresload error")
+        return None, None
+    # 用4条边的多边形逼近凸包
+    epsilon = 0.02 * cv2.arcLength(hull, True)
+    while True:
+        approx = cv2.approxPolyDP(hull, epsilon, True)
+        if len(approx) == 4:
+            four_edge_polys = approx
+            break
+        elif len(approx) < 4:
+            epsilon -= 1
+        elif len(approx) > 4:
+            return None, None
+    if offset:
+        offset = np.array([offset.x(), offset.y()])
+        four_edge_polys = np.squeeze(four_edge_polys)
+        four_edge_polys = four_edge_polys + offset
+    key_points = np.array([four_edge_polys[3], four_edge_polys[2], four_edge_polys[1], four_edge_polys[0]])
+    # print(type(key_points))
+    thres = {
+        "th_result" :  final_img,
+        "r_th" : r_th,
+        "g_th" : g_th,
+        "b_th" : b_th
+    }
+    return key_points ,thres
 
 
 

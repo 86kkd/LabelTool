@@ -6,22 +6,23 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import typing
 from utils.saveDoc import save_as_json
-
+import numpy as np
 class DragSlider(QSlider):
     def __init__(self, parent=None):
         super().__init__(Qt.Horizontal, parent)
-        self.setRange(0, 255)  # 设置范围
+        self.setRange(0, 254)  # 设置范围
         self.setSingleStep(1)  # 设置步长
         self.setPageStep(10)  # 设置大步长
         self.setSliderPosition(125)  # 设置初始值
         self.setOrientation(Qt.Horizontal)  # 设置水平方向
         self.setTracking(True)  # 设置跟踪，即拖动过程中不断发出valueChanged信号
-        self.setStyleSheet(
+        self.setStyleSheet( #set default style sheet
             'QSlider::handle:horizontal {background-color: white; border: 1px solid black; width: 10px; margin: -3px 0;}')
-
+        
+        
 class ListWidget(QListWidget):
-    def __init__(self, parent: typing.Optional[QWidget] = ...) -> None:
-        super().__init__(parent)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.itemClicked.connect(self.handle_item_clicked)
         self.update_img_callback = None
         self.directory = None
@@ -32,6 +33,22 @@ class ListWidget(QListWidget):
             self.update_img_callback(item_path)
     def resizeEvent(self, event):  # 用于debug ui界面美化
         print(f'ListWidget {event.size()}')
+    
+class ImgViewLabel(QLabel):
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.img =None
+    def update_image(self,img=None):      
+        if type(img) == cv2.Mat:
+            self.img = img
+            img = QPixmap.fromImage(QImage(img.data, img.shape[1], img.shape[0], img.shape[1], QImage.Format_Grayscale8))
+        if type(img) == np.ndarray:
+            self.img = img
+            img = QPixmap.fromImage(QImage(img.data, img.shape[1], img.shape[0], img.shape[1], QImage.Format_Grayscale8))
+        self.setPixmap(img.scaled(self.width(), self.height(), Qt.KeepAspectRatio))
+    def resizeEvent(self, event):
+        if self.img is not None:
+            self.update_image(self.img)
 
 class VBoxLayout(QVBoxLayout):
     def __init__(self, *args, **kwargs):
@@ -41,34 +58,134 @@ class ModeButton(QPushButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_first_click = True
-        self.color = "red"  # Initialize button color to red
+        self.color = "blue"  # Initialize button color to red
         self.clicked.connect(self.on_clicked)
-        self.first_click_callback = None
+        self.load_model_callback = None
+        self.change_mode_recall = None
+        self.mode = None
+        self.sliderSheet = {
+        # these SyleSheet are copyed ,i don't know how to make it in a easy way 
+        # and i don't like qt designer and qt creater ,since they are too big and 
+        # uneasy to install ,and i don't like it's workspace which less cool 
+        # than pycharm or code 
+            'red':"""
+            QSlider::groove:horizontal {
+                border: 1px solid #bbb;
+                background: white;
+                height: 10px;
+                border-radius: 4px;
+            }
 
+            QSlider::handle:horizontal {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 red, stop:1 #ccc);
+                border: 1px solid #777;
+                width: 13px;
+                margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
+                border-radius: 4px;
+            }
+
+            QSlider::sub-page:horizontal {
+                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+                                            stop: 0 #FF92BB, stop: 1 #FF4081);
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 red, stop:1 #FF4081);
+                border: 1px solid #777;
+                height: 10px;
+                border-radius: 4px;
+            }
+            """,
+            'green':"""
+            QSlider::groove:horizontal {
+                border: 1px solid #bbb;
+                background: white;
+                height: 10px;
+                border-radius: 4px;
+            }
+
+            QSlider::handle:horizontal {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 green, stop:1 #ccc);
+                border: 1px solid #777;
+                width: 13px;
+                margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
+                border-radius: 4px;
+            }
+
+            QSlider::sub-page:horizontal {
+                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+                                            stop: 0 #FF92BB, stop: 1 #FF4081);
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 green, stop:1 #ccc);
+                border: 1px solid #777;
+                height: 10px;
+                border-radius: 4px;
+            }
+            """,
+            'blue':"""
+            QSlider::groove:horizontal {
+                border: 1px solid #bbb;
+                background: white;
+                height: 10px;
+                border-radius: 4px;
+            }
+
+            QSlider::handle:horizontal {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 blue, stop:1 #ccc);
+                border: 1px solid #777;
+                width: 13px;
+                margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
+                border-radius: 4px;
+            }
+
+            QSlider::sub-page:horizontal {
+                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+                                            stop: 0 #FF92BB, stop: 1 #FF4081);
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 blue, stop:1 #ccc);
+                border: 1px solid #777;
+                height: 10px;
+                border-radius: 4px;
+            }
+            """
+        }
     def on_clicked(self):
         if self.is_first_click:
             self.first_click_behavior()
-            if self.first_click_callback:
-                self.first_click_callback()
             self.is_first_click = False
         else:
             self.toggle_color()
-
     def first_click_behavior(self):
         # First click behavior
-        self.setText("Red Mode")
-        self.setStyleSheet("background-color: red")
-        
-
+        if self.load_model_callback:
+            self.load_model_callback()
+        self.setText("Blue Mode")
+        self.setStyleSheet("background-color: blue")
+        self.mode = 'blue'
+        self.change_mode_recall(
+            [
+                self.sliderSheet['red'],
+                self.sliderSheet['green'],
+                self.sliderSheet['blue']
+            ])
     def toggle_color(self):
         if self.color == "red":
             self.color = "blue"
             self.setText("Blue Mode")
             self.setStyleSheet("background-color: blue")
+            self.mode = 'blue'
+            self.change_mode_recall(
+            [
+                self.sliderSheet['red'],
+                self.sliderSheet['green'],
+                self.sliderSheet['blue']
+            ])
         else:
             self.color = "red"
             self.setText("Red Mode")
             self.setStyleSheet("background-color: red")
+            self.mode = 'red'
+            self.change_mode_recall(
+            [
+                self.sliderSheet['blue'],
+                self.sliderSheet['green'],
+                self.sliderSheet['red']
+            ])
 
 class WornLog(QDialog):
     def __init__(self):
@@ -113,49 +230,13 @@ class ImageViewer(QGraphicsView):
         self.setRenderHint(QPainter.RenderHint(QPainter.Antialiasing | QPainter.SmoothPixmapTransform))
         self.setRenderHint(QPainter.RenderHint(
             QPainter.HighQualityAntialiasing | QPainter.NonCosmeticDefaultPen | QPainter.TextAntialiasing))
-        self.process_image_callback = None
+        self.detect_callback = None
+        self.process_labels_callback = None
+        self.img_path = None
         # 鼠标事件记录
         self.rect_items = []  # 保存画的矩形项的列表
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            rect_item = QGraphicsRectItem()
-            rect_item.setPen(QPen(QColor(255, 0, 0), 2))
-            self.scene().addItem(rect_item)
-            rect_item.setRect(QRectF(self.mapToScene(event.pos()), QSizeF()))
-            self.rect_items.append(rect_item)
 
-    def mouseMoveEvent(self, event):
-        if self.rect_items:
-            rect = QRectF(self.rect_items[-1].rect().topLeft(), self.mapToScene(event.pos())).normalized()
-            self.rect_items[-1].setRect(rect)
-
-    def mouseReleaseEvent(self, event):  # sourcery skip: extract-method
-        if event.button() != Qt.LeftButton or not self.rect_items:
-            return
-        rect = QRectF(self.rect_items[-1].rect())
-        if rect.width() == 0 or rect.height() == 0:
-            self.scene().removeItem(self.rect_items[-1])
-            self.rect_items.pop()
-        else:
-            # 调用find_key_points函数来处理框选区域的关键点
-            # 从图片中获取矩形范围内的图像
-            rect_img = self.pixmap.copy(rect.toRect())
-            key_points = find_key_points(rect_img, rect.topLeft())
-
-            if key_points.size == 0:
-                self.msg_box = QMessageBox()  # c创建消息框
-                self.msg_box.setStyleSheet('background-color: #1E1E1E;color: white')
-                self.msg_box.setWindowTitle("提示")
-                self.msg_box.setText("自动检测死掉了，请手动标吧")
-                self.msg_box.exec_()
-                self.scene().removeItem(self.rect_items[-1])
-                self.rect_items.pop()
-
-            else:
-                self.plot_rect(key_points)
-
-    # TODO Rename this here and in `mouseReleaseEvent`
     def plot_rect(self, key_points):
         qpoints = [QPointF(*p) for p in key_points]
         poly_item = QGraphicsPolygonItem(QPolygonF(qpoints))
@@ -190,22 +271,50 @@ class ImageViewer(QGraphicsView):
         self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + delta.x())
         self.verticalScrollBar().setValue(self.verticalScrollBar().value() + delta.y())
 
-    def update_image(self, image_path):
+    def update_image(self, image_path=None):
         """
         update the image
         @param image_path: path to update image
         """
         # 更新图片
-        img = cv2.imread(image_path)
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        if image_path:   
+            #如果给出图片路径就更新图片路径
+            self.img_path = image_path 
+        try :
+            img = cv2.imread(self.img_path)
+            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        except:
+            print('WORNING: the path is None')
+            return
         self.pixmap = QPixmap.fromImage(QImage(img_rgb.data, img_rgb.shape[1], img_rgb.shape[0], QImage.Format_RGB888))
         self.pixmapItem.setPixmap(self.pixmap)
         self.width = self.pixmap.width()
         self.height = self.pixmap.height()
         self.center_image()
-        if self.process_image_callback :
-            points,images,thres = self.process_image_callback(img)
-
+        if self.detect_callback :
+            points,rgb_binary = self.detect_callback(img)
+        if self.process_labels_callback and rgb_binary is not None:
+            self.process_labels_callback(rgb_binary)
+        if points is not None:
+            if self.rect_items:
+                self.scene().removeItem(self.rect_items[-1])
+                self.rect_items.pop()
+            view_width = self.viewport().width()
+            view_height = self.viewport().height()
+            x_center = (view_width - self.width) / 2
+            y_center = (view_height - self.height) / 2
+            points = np.squeeze(points)
+            points = [QPointF(*point) for point in points]
+            #因为上面center_image时使视窗的偏了，移所以画的点也需要进行相应的偏移
+            pixmap_points = [QPointF(p.x() + x_center, p.y() + y_center) for p in points]
+            polygon = QPolygonF(pixmap_points)
+            polygon_item = EditablePolygonItem(polygon)
+            polygon_item.setPen(QPen(QColor(0, 255, 0), 2))
+            polygon_item.setBrush(QBrush(QColor(0, 0, 0, 0)))
+            self.scene().addItem(polygon_item)
+            self.rect_items.append(polygon_item)
+            # self.setScene(self.scene)
     def center_image(self):
         # Get view dimensions
         view_width = self.viewport().width()
@@ -217,3 +326,37 @@ class ImageViewer(QGraphicsView):
         self.pixmapItem.setPos(x_center, y_center)
     def resizeEvent(self, event):  # 用于debug ui界面美化
         print(f'ImageViewer {event.size()}')
+from PyQt5.QtWidgets import QGraphicsPolygonItem
+
+from PyQt5.QtWidgets import QGraphicsPolygonItem
+
+class EditablePolygonItem(QGraphicsPolygonItem):
+    def __init__(self, polygon, parent=None):
+        super().__init__(polygon, parent)
+        self.active_point = None
+        self.setAcceptHoverEvents(True)
+    def mouseMoveEvent(self, event):
+        if self.active_point is not None:
+            # 移动活动点
+            new_polygon = self.polygon()
+            new_polygon[self.active_point] = self.mapFromScene(event.scenePos())
+            self.setPolygon(new_polygon)  # 更新多边形
+            self.update()
+    def mousePressEvent(self, event):
+        # 查找最接近鼠标点击位置的点
+        for i, point in enumerate(self.polygon()):
+            if (point - self.mapFromScene(event.scenePos())).manhattanLength() < 10:
+                self.active_point = i
+                print('get it')
+                break
+    def mouseReleaseEvent(self, event):
+        self.active_point = None
+    def paint(self, painter, option, widget=None):
+        # 绘制多边形
+        painter.drawPolygon(self.polygon())
+
+        # 绘制坐标点
+        for point in self.polygon():
+            painter.drawEllipse(point, 5, 5)
+
+

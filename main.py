@@ -5,7 +5,8 @@ import numpy as np
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from funWidget.widgets import DragSlider, ImageViewer, ListWidget, VBoxLayout,ModeButton, WornLog
+from funWidget.widgets import DragSlider, ImageViewer,\
+    ListWidget, VBoxLayout,ModeButton, WornLog, ImgViewLabel
 from model.modelProcess import ModelPrecess
 from cvProcess import cvDetect
 
@@ -30,21 +31,23 @@ class MainWindow(QMainWindow):
         # first create workList
         self.workList = ListWidget(self)
         # then create label and slider to show images
-        rLabel = QLabel()
-        rSlider = DragSlider()
-        gLabel = QLabel()
-        gSlider = DragSlider()
-        bLabel = QLabel()
-        bSlider = DragSlider()
-        lab_button = ModeButton("model is disabled")
+        self.resultLable = ImgViewLabel()
+        self.rLabel = ImgViewLabel()
+        self.Slider1 = DragSlider()
+        self.gLabel = ImgViewLabel()
+        self.Slider2 = DragSlider()
+        self.bLabel = ImgViewLabel()
+        self.Slider3 = DragSlider()
+        self.mode_button = ModeButton("model is disabled")
         lab_layout = VBoxLayout()
-        lab_layout.addWidget(lab_button)
-        lab_layout.addWidget(rLabel)
-        lab_layout.addWidget(rSlider)
-        lab_layout.addWidget(gLabel)
-        lab_layout.addWidget(gSlider)
-        lab_layout.addWidget(bLabel)
-        lab_layout.addWidget(bSlider)
+        lab_layout.addWidget(self.resultLable)
+        lab_layout.addWidget(self.mode_button)
+        lab_layout.addWidget(self.rLabel)
+        lab_layout.addWidget(self.Slider1)
+        lab_layout.addWidget(self.gLabel)
+        lab_layout.addWidget(self.Slider2)
+        lab_layout.addWidget(self.bLabel)
+        lab_layout.addWidget(self.Slider3)
         lab_widget = QWidget()
         lab_widget.setLayout(lab_layout)
         # create menu
@@ -97,42 +100,51 @@ class MainWindow(QMainWindow):
         move_to_center(self)
         self.workList.setUniformItemSizes(True)
         self.workList.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setStyleSheet("""
+            QMainWindow {
+              background-color: gray;
+              border: 1px solid #d3d3d3;
+            }
+            """)
         
-        # define windows and button action
+        
+        # send callback signal define windows action 
         openDirAction.triggered.connect(self.load_directory)
         loadModelAction.triggered.connect(self.load_model)
         exitAction.setShortcut('Esc')
         exitAction.triggered.connect(self.close)
-        lab_button.first_click_callback = self.load_model
-        self.imageViewer.process_image_callback = self.auto_detect
+        self.mode_button.load_model_callback = self.load_model
+        self.imageViewer.detect_callback = self.auto_detect
+        self.imageViewer.process_labels_callback = self.update_label_img
         self.workList.update_img_callback = self.imageViewer.update_image
+        self.mode_button.change_mode_recall = self.change_mode
         helpDetail.triggered.connect(
-            lambda: QDesktopServices.openUrl(QUrl('https://www.example.com')))
+            lambda: QDesktopServices.openUrl(QUrl('https://github.com/86kkd/LabelTool')))
         
         # initial global parameters
         self.loaded_model = False
-        rSlider.setSliderPosition(50)
-        gSlider.setSliderPosition(120)
-        bSlider.setSliderPosition(240)
-        rSlider.valueChanged.connect(self.r_sliderChange)
-        gSlider.valueChanged.connect(self.g_sliderChange)
-        bSlider.valueChanged.connect(self.b_sliderChange)
-    def r_sliderChange(self,value):
-        self.cvDetect.r_threshold = value
-        path = os.path.join(self.directory,self.workList.currentItem().text())
-        self.imageViewer.update_image(path)
-    def g_sliderChange(self,value):
-        self.cvDetect.r_threshold = value
-        path = os.path.join(self.directory,self.workList.currentItem().text())
-        self.imageViewer.update_image(path)
-    def b_sliderChange(self,value):
-        self.cvDetect.r_threshold = value
-        path = os.path.join(self.directory,self.workList.currentItem().text())
-        self.imageViewer.update_image(path)
+        self.Slider1.setSliderPosition(50)
+        self.Slider2.setSliderPosition(120)
+        self.Slider3.setSliderPosition(240)
+        self.Slider1.update_img_callback = self.imageViewer.update_image
+        self.Slider2.update_img_callback = self.imageViewer.update_image
+        self.Slider3.update_img_callback = self.imageViewer.update_image
+        
+    def update_label_img(self,img:dict):
+        self.resultLable.update_image(img['th_result'])
+        self.rLabel.update_image(img['r_th'])
+        self.gLabel.update_image(img['g_th'])
+        self.bLabel.update_image(img['b_th'])
+        
     def resizeEvent(self, event: QResizeEvent) -> None:
         print(event.size())
         return super().resizeEvent(event)
     
+    def change_mode(self,sliderSheets):
+        self.Slider1.setStyleSheet(sliderSheets[0])
+        self.Slider2.setStyleSheet(sliderSheets[1])
+        self.Slider3.setStyleSheet(sliderSheets[2])
+        
     def load_directory(self):
         dialog = self.get_dialog("Select Directory")
         dialog.setFileMode(QFileDialog.DirectoryOnly)
@@ -219,27 +231,21 @@ class MainWindow(QMainWindow):
             for point in points:
                 # 计算点到质心的向量
                 vector = (point[0] - centroid[0], point[1] - centroid[1])
-                
                 # 扩大向量
                 enlarged_vector = (vector[0] * (1 + scale_factor), vector[1] * (1 + scale_factor))
-                
                 # 计算新的点
                 new_point = (centroid[0] + enlarged_vector[0], centroid[1] + enlarged_vector[1])
                 enlarged_points.append(new_point)
-
             return enlarged_points
         def crop_polygon(input_image, points):
-            # 创建一个全黑的掩膜
-            mask = np.zeros(input_image.shape[:2], dtype=np.uint8)
-            # 根据四个点创建一个多边形
-            polygon = np.array(points, np.int32)
+            mask = np.zeros(input_image.shape[:2], dtype=np.uint8)# 创建一个全黑的掩膜
+            polygon = np.array(points, np.int32)# 根据四个点创建一个多边形
             polygon = polygon.reshape((-1, 1, 2))
             # 使用多边形填充掩膜
             cv2.fillPoly(mask, [polygon], 255)
             return cv2.bitwise_and(input_image, input_image, mask=mask)
         def visual_result(img, sorted_points):
-            # 获取第一个点
-            first_point = sorted_points[0]
+            first_point = sorted_points[0]# 获取第一个点
             if type(first_point) == np.ndarray and first_point.ndim == 2 :
                 first_point = first_point.squeeze()
                 sorted_points = sorted_points.squeeze()
@@ -260,8 +266,12 @@ class MainWindow(QMainWindow):
             enlarged_points = enlarge_polygon(sorted_points, scale_factor=0.1)
             cropped_img = crop_polygon(img, enlarged_points)
             # cropped_img_with_marker = visual_result(cropped_img, sorted_points)
-            self.cvDetect = cvDetect()
-            points, thres= self.cvDetect.find(image=img)
+            thres={
+                   'red': self.Slider1.value(),
+                   'green': self.Slider2.value(),
+                   'blue':self.Slider3.value()}
+            mode = self.mode_button.mode
+            points, rgb_binary= cvDetect(cropped_img,thres,mode)
             # cropped_img_with_marker = visual_result(cropped_img, points)
             # except:
                 # print('\033[31m there is something wrong with auto detection\033[0m')
@@ -271,10 +281,8 @@ class MainWindow(QMainWindow):
             # cv2.destroyAllWindows()
             
         else :
-            points, cropped_img_with_marker, thres = None, None, None
-        return points ,cropped_img_with_marker, thres
-        
-    def update_image(self):
+            points, rgb_binary = None, None
+        return points , rgb_binary
         
         
 if __name__ == '__main__':
