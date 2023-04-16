@@ -355,11 +355,23 @@ class EditablePolygonItem(QGraphicsPolygonItem):
     def mouseReleaseEvent(self, event):
         self.active_point = None
     def paint(self, painter, option, widget=None):
+        # 创建一个QPen对象
+        pen = QPen(Qt.red)
+        # 设置线宽度
+        pen.setWidth(2)
+        # 将QPen对象应用于绘制器
+        painter.setPen(pen)
+
         # 绘制多边形
         painter.drawPolygon(self.polygon())
 
         # 绘制坐标点
         for point in self.polygon():
+            # 设置绘制点的颜色为红色
+            painter.setPen(QPen(Qt.red))
+            # 绘制点的填充颜色为黄色
+            painter.setBrush(QBrush(Qt.yellow))
+            # 绘制点
             painter.drawEllipse(point, 5, 5)
 
 

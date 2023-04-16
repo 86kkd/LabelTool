@@ -34,69 +34,6 @@ def channel_th(r, g, b, threshold):
     return r_binary, g_binary, b_binary
 
 
-
-
-def channel_sub(img_rgb, r, g, b, red_color):
-    """
-
-    @param img_rgb:
-    @param r:
-    @param g:
-    @param b:
-    @param red_color:
-    @return:
-    """
-    # 色彩分离二值化阈值-绿色
-    separationThreshold_GREEN = 30
-
-    gray_img = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)  # 获取灰度图
-    white_img = cv2.threshold(gray_img, 240, 255, cv2.THRESH_BINARY)[1]
-    white_img = cv2.bitwise_not(white_img)
-    if red_color:
-        # 灰度二值化阈值-红色
-        grayThreshold_RED = 90
-        # 敌方为红色
-        gray_img = cv2.threshold(gray_img, grayThreshold_RED, 255, cv2.THRESH_BINARY)[1]  # 灰度二值化
-        r_sub_b = cv2.subtract(r, b)  # 红蓝通道相减
-        r_sub_g = cv2.subtract(r, g)  # 红绿通道相减
-        # 色彩分离二值化阈值-红色
-        separationThreshold_RED = 100
-        r_sub_b = cv2.threshold(r_sub_b, separationThreshold_RED, 255, cv2.THRESH_BINARY)[1]  # 红蓝二值化
-        r_sub_g = cv2.threshold(r_sub_g, separationThreshold_GREEN, 255, cv2.THRESH_BINARY)[
-            1]  # 红绿二值化
-        r_sub_b = cv2.dilate(r_sub_b, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))
-        r_sub_g = cv2.dilate(r_sub_g,
-                            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))  # 膨胀
-
-        final_sub = r_sub_b & gray_img & r_sub_g & white_img  # 逻辑与获得最终二值化图像
-            # cv2.morphologyEx(_maxColor, _maxColor, cv2.MORPH_OPEN,  kernel3)
-    else:
-        # 灰度二值化阈值-紫色
-        grayThreshold_PURPLE = 100
-        # 敌方为蓝色
-        _purpleSrc = cv2.threshold(r, grayThreshold_PURPLE, 255, cv2.THRESH_BINARY)[1]
-        _purpleSrc = cv2.bitwise_not(_purpleSrc)
-
-        # 灰度二值化阈值-蓝色
-        grayThreshold_BLUE = 40
-        gray_img = cv2.threshold(gray_img, grayThreshold_BLUE, 255, cv2.THRESH_BINARY)[1]  # 灰度二值化
-        r_sub_b = cv2.subtract(b, r)  # 蓝红通道相减
-        r_sub_g = cv2.subtract(b, g)  # 蓝绿通道相减
-        # 色彩分离二值化阈值-蓝色
-        separationThreshold_BLUE = 40
-        r_sub_b = cv2.threshold(r_sub_b, separationThreshold_BLUE, 255, cv2.THRESH_BINARY)[1]  # 蓝红二值化
-        r_sub_g = cv2.threshold(r_sub_g, separationThreshold_GREEN, 255, cv2.THRESH_BINARY)[
-            1]  # 蓝绿二值化
-        r_sub_b = cv2.dilate(r_sub_b, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
-        r_sub_g = cv2.dilate(r_sub_g, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
-                            iterations=1)  # 膨胀
-
-        final_sub = r_sub_b & gray_img & r_sub_g & white_img & _purpleSrc  # 逻辑与获得最终二值化图像                                                            # 逻辑与获得最终二值化图像
-    final_sub = cv2.dilate(final_sub, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))  # 膨胀
-    return final_sub
-
-
-
 def cvDetect(image, threoloads: dict,mode,offset: QPointF=None) -> np.array:
     # sourcery skip: hoist-statement-from-if, low-code-quality
     """
@@ -118,46 +55,32 @@ def cvDetect(image, threoloads: dict,mode,offset: QPointF=None) -> np.array:
         r, g, b = cv2.split(img_rgb)  # 分离色彩通道
     elif mode == 'red':
         b, g, r = cv2.split(img_rgb) 
-    red_color = False
     threshold = {'r': threoloads['red'], 'g': threoloads['green'], 'b': threoloads['blue']}
     r_th, g_th, b_th = channel_th(r, g, b, threshold)
-    c_sub = channel_sub(img_rgb, r, g, b, red_color=red_color)
-    # 定义结构元素
-    circle_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    b_th_o = cv2.morphologyEx(b_th, cv2.MORPH_OPEN, circle_kernel)  # 开运算
-    # cv2.imshow("b_th_o", b_th_o)
-    # cv2.imshow("r_th",r_th)
     b_and_g = b_th & g_th
+    circle_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     b_and_g_o = cv2.morphologyEx(b_and_g, cv2.MORPH_OPEN, circle_kernel, iterations=3)  # 开运算
-    # cv2.imshow("b and g", b_and_g)
-
-    final_img = b_and_g & cv2.bitwise_not(r_th)
+    # cv2.imshow("b_th_o", b_and_g_o)
+    final_img = b_and_g_o & cv2.bitwise_not(r_th)
     # cv2.imshow("final img", final_img)
-
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+    thres = {
+        "th_result" :  final_img,
+        "r_th" : r_th,
+        "g_th" : g_th,
+        "b_th" : b_th
+    }
     contours, hierarchy = cv2.findContours(final_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # 找到凸多边形并绘制
     if len(contours) == 0:
-        return None, None
-    # 面积筛选
-    new_contours = []
-    for contour in contours:
-        if cv2.contourArea(contour) < 100:
-            continue
-        print(cv2.contourArea(contour))
-        # 外接矩形
-        x, y, w, h = cv2.boundingRect(contour)
-        rate = h / w
-        if rate <= 1.5:
-            print(rate)
-            # 在原图上画出预测的矩形
-            cv2.rectangle(img_rgb, (x, y), (x + w, y + h), (0, 0, 255), 10)
-            new_contours.append(contour)
+        return None ,thres
     try:
-        all_contours = np.concatenate(new_contours)
+        all_contours = np.concatenate(contours)
         hull = cv2.convexHull(all_contours)
     except:
         print("detect error: may be thresload error")
-        return None, None
+        return None, thres
     # 用4条边的多边形逼近凸包
     epsilon = 0.02 * cv2.arcLength(hull, True)
     while True:
@@ -168,19 +91,13 @@ def cvDetect(image, threoloads: dict,mode,offset: QPointF=None) -> np.array:
         elif len(approx) < 4:
             epsilon -= 1
         elif len(approx) > 4:
-            return None, None
+            return None ,thres
     if offset:
         offset = np.array([offset.x(), offset.y()])
         four_edge_polys = np.squeeze(four_edge_polys)
         four_edge_polys = four_edge_polys + offset
     key_points = np.array([four_edge_polys[3], four_edge_polys[2], four_edge_polys[1], four_edge_polys[0]])
-    # print(type(key_points))
-    thres = {
-        "th_result" :  final_img,
-        "r_th" : r_th,
-        "g_th" : g_th,
-        "b_th" : b_th
-    }
+    
     return key_points ,thres
 
 

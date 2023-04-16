@@ -261,11 +261,15 @@ class MainWindow(QMainWindow):
             return img
         if self.loaded_model:
             points = self.model.detect(img)
-            # try :
-            sorted_points = sort_points(points)
-            enlarged_points = enlarge_polygon(sorted_points, scale_factor=0.1)
-            cropped_img = crop_polygon(img, enlarged_points)
-            # cropped_img_with_marker = visual_result(cropped_img, sorted_points)
+            try :
+                sorted_points = sort_points(points)
+                enlarged_points = enlarge_polygon(sorted_points, scale_factor=0.1)
+                cropped_img = crop_polygon(img, enlarged_points)
+            except:
+                sorted_points = points
+                enlarged_points = enlarge_polygon(sorted_points, scale_factor=0.1)
+                cropped_img = crop_polygon(img, enlarged_points)
+                print("points sorted error use not sorter points")
             thres={
                    'red': self.Slider1.value(),
                    'green': self.Slider2.value(),
