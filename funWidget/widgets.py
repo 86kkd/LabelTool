@@ -7,6 +7,7 @@ from PyQt5.QtGui import *
 import typing
 from utils.saveDoc import save_as_json
 import numpy as np
+
 class DragSlider(QSlider):
     def __init__(self, parent=None):
         super().__init__(Qt.Horizontal, parent)
@@ -238,6 +239,8 @@ class ImageViewer(QGraphicsView):
         self.img_path = None
         # 鼠标事件记录
         self.rect_items = []  # 保存画的矩形项的列表
+        self.radius = 30  # 初始化圆的半径为10
+        self.visual_hint = None
 
 
     def plot_rect(self, key_points):
@@ -251,29 +254,50 @@ class ImageViewer(QGraphicsView):
         self.scene().removeItem(self.rect_items[-1])
         self.rect_items.pop()
         self.rect_items.append(poly_item)
+        
 
     def wheelEvent(self, event):
-        # 获取鼠标滚轮事件的角度值
-        angle = event.angleDelta().y()
-        # 将放大缩小倍率设为1.1
-        zoom_factor = 1.1
-        # 计算当前视图的放大缩小倍率
-        zoom = zoom_factor ** (angle / 120)
-        # 获取当前鼠标位置
-        mouse_pos = event.pos()
-        # 将鼠标位置转换为视图坐标系下的坐标
-        scene_pos = self.mapToScene(mouse_pos)
-        # 缩放视图
-        self.scale(zoom, zoom)
-        # 获取缩放后的鼠标位置
-        new_mouse_pos = self.mapFromScene(scene_pos)
-        # 计算鼠标位置的偏移量
-        delta = new_mouse_pos - mouse_pos
+        angle = event.angleDelta().y()  # 获取鼠标滚轮事件的角度值
+        zoom_factor = 1.1  # 将放大缩小倍率设为1.1
+        zoom = zoom_factor ** (angle / 120)  # 计算当前视图的放大缩小倍率
+        mouse_pos = event.pos()   # 获取当前鼠标位置
+        scene_pos = self.mapToScene(mouse_pos)  # 将鼠标位置转换为视图坐标系下的坐标
+        self.scale(zoom, zoom)# 缩放视图
+        new_mouse_pos = self.mapFromScene(scene_pos)# 获取缩放后的鼠标位置
+        delta = new_mouse_pos - mouse_pos  # 计算鼠标位置的偏移量
         print(f'delta {delta}')
-        # 移动滚动条
-        self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + delta.x())
+        self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + delta.x())# 移动滚动条
         self.verticalScrollBar().setValue(self.verticalScrollBar().value() + delta.y())
+        self.radius /= zoom
+        if self.visual_hint:
+            center = self.mapToScene(event.pos())  # 将鼠标移动位置映射到场景坐标系中，得到圆心坐标
+            self.calculate_average_rgb(center, self.radius, self.image)  # 计算圆形区域内像素的平均RGB值
+            self.visual_hint.setRect(center.x() - self.radius, center.y() - self.radius, 2 * self.radius, 2 * self.radius)  # 更新圆形的位置和大小
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)  
+        if event.button() == Qt.RightButton:  # 如果右键被按下
+            center = self.mapToScene(event.pos())  # 将鼠标点击位置映射到场景坐标系中，得到圆心坐标
+            self.image = self.grab().toImage()  # 获取当前视图中的图像
+            self.calculate_average_rgb(center, self.radius, self.image)  # 计算圆形区域内像素的平均RGB值
+            self.visual_hint = QGraphicsEllipseItem()  # 创建一个提示圆形
+            self.visual_hint.setPen(Qt.red)  # 设置圆形的颜色为红色
+            self.scene().addItem(self.visual_hint)  # 将提示圆形添加到场景中
+            self.visual_hint.setRect(center.x() - self.radius, center.y() - self.radius, 2 * self.radius, 2 * self.radius)  # 设置圆形的位置和大小
+            self.visual_hint.show()  # 显示圆形提示框
 
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        if self.visual_hint:  # 如果提示圆形已经存在
+            center = self.mapToScene(event.pos())  # 将鼠标移动位置映射到场景坐标系中，得到圆心坐标
+            self.calculate_average_rgb(center, self.radius, self.image)  # 计算圆形区域内像素的平均RGB值
+            self.visual_hint.setRect(center.x() - self.radius, center.y() - self.radius, 2 * self.radius, 2 * self.radius)  # 更新圆形的位置和大小
+
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+        if event.button() == Qt.RightButton:  # 如果右键被释放
+            if self.visual_hint:  # 如果提示圆形存在
+                self.scene().removeItem(self.visual_hint)  # 从场景中删除提示圆形
+                self.visual_hint = None  # 将提示圆形置为None，以便下一次使用
     def update_image(self, image_path=None):
         """
         update the image
@@ -294,7 +318,7 @@ class ImageViewer(QGraphicsView):
         self.pixmapItem.setPixmap(self.pixmap)
         self.width = self.pixmap.width()
         self.height = self.pixmap.height()
-        self.center_image()
+        # self.center_image()
         if self.detect_callback :
             points,rgb_binary = self.detect_callback(img)
         if self.process_labels_callback and rgb_binary is not None:
@@ -303,15 +327,15 @@ class ImageViewer(QGraphicsView):
             if self.rect_items:
                 self.scene().removeItem(self.rect_items[-1])
                 self.rect_items.pop()
-            view_width = self.viewport().width()
-            view_height = self.viewport().height()
-            x_center = (view_width - self.width) / 2
-            y_center = (view_height - self.height) / 2
+            # view_width = self.viewport().width()
+            # view_height = self.viewport().height()
+            # x_center = (view_width - self.width) / 2
+            # y_center = (view_height - self.height) / 2
+            #因为上面center_image时使视窗的偏了，移所以画的点也需要进行相应的偏移
+            # pixmap_points = [QPointF(p.x() + x_center, p.y() + y_center) for p in points]
             points = np.squeeze(points)
             points = [QPointF(*point) for point in points]
-            #因为上面center_image时使视窗的偏了，移所以画的点也需要进行相应的偏移
-            pixmap_points = [QPointF(p.x() + x_center, p.y() + y_center) for p in points]
-            polygon = QPolygonF(pixmap_points)
+            polygon = QPolygonF(points)
             polygon_item = EditablePolygonItem(polygon)
             polygon_item.setPen(QPen(QColor(0, 255, 0), 2))
             polygon_item.setBrush(QBrush(QColor(0, 0, 0, 0)))
@@ -329,9 +353,32 @@ class ImageViewer(QGraphicsView):
         self.pixmapItem.setPos(x_center, y_center)
     def resizeEvent(self, event):  # 用于debug ui界面美化
         print(f'ImageViewer {event.size()}')
-from PyQt5.QtWidgets import QGraphicsPolygonItem
+    
 
-from PyQt5.QtWidgets import QGraphicsPolygonItem
+    def calculate_average_rgb(self, center, radius, image):
+        total_red = 0
+        total_green = 0
+        total_blue = 0
+        pixel_count = 0
+
+        for x in range(int(center.x() - radius), int(center.x() + radius)):
+            for y in range(int(center.y() - radius), int(center.y() + radius)):
+                distance = np.linalg.norm(np.array([x, y]) - np.array([center.x(), center.y()]))
+                if distance <= radius:
+                    color = QColor(image.pixel(x, y))
+                    total_red += color.red()
+                    total_green += color.green()
+                    total_blue += color.blue()
+                    pixel_count += 1
+
+        if pixel_count > 0:
+            average_red = total_red / pixel_count
+            average_green = total_green / pixel_count
+            average_blue = total_blue / pixel_count
+            print(f"Average RGB: ({average_red}, {average_green}, {average_blue})")
+        else:
+            print("No pixels found in the circle.")
+
 
 class EditablePolygonItem(QGraphicsPolygonItem):
     def __init__(self, polygon, parent=None):
@@ -339,20 +386,25 @@ class EditablePolygonItem(QGraphicsPolygonItem):
         self.active_point = None
         self.setAcceptHoverEvents(True)
     def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        print('move it') 
         if self.active_point is not None:
             # 移动活动点
             new_polygon = self.polygon()
             new_polygon[self.active_point] = self.mapFromScene(event.scenePos())
             self.setPolygon(new_polygon)  # 更新多边形
-            self.update()
     def mousePressEvent(self, event):
+        # super().mousePressEvent(event) 
         # 查找最接近鼠标点击位置的点
         for i, point in enumerate(self.polygon()):
             if (point - self.mapFromScene(event.scenePos())).manhattanLength() < 10:
                 self.active_point = i
-                print('get it')
+                print('mousePressEvent')
                 break
+        else:  # 如果循环结束后未找到最近点，执行super().mousePressEvent(event)
+            super().mousePressEvent(event)
     def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event) 
         self.active_point = None
     def paint(self, painter, option, widget=None):
         # 创建一个QPen对象
@@ -372,6 +424,6 @@ class EditablePolygonItem(QGraphicsPolygonItem):
             # 绘制点的填充颜色为黄色
             painter.setBrush(QBrush(Qt.yellow))
             # 绘制点
-            painter.drawEllipse(point, 5, 5)
+            painter.drawEllipse(point, 3, 3)
 
 

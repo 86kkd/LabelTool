@@ -245,7 +245,10 @@ class MainWindow(QMainWindow):
             cv2.fillPoly(mask, [polygon], 255)
             return cv2.bitwise_and(input_image, input_image, mask=mask)
         def visual_result(img, sorted_points):
-            first_point = sorted_points[0]# 获取第一个点
+            if sorted_points is not None:
+                first_point = sorted_points[0]# 获取第一个点
+            else :
+                return 
             if type(first_point) == np.ndarray and first_point.ndim == 2 :
                 first_point = first_point.squeeze()
                 sorted_points = sorted_points.squeeze()
@@ -265,6 +268,8 @@ class MainWindow(QMainWindow):
                 sorted_points = sort_points(points)
                 enlarged_points = enlarge_polygon(sorted_points, scale_factor=0.1)
                 cropped_img = crop_polygon(img, enlarged_points)
+                # cropped_img_with_marker = visual_result(cropped_img, sorted_points)
+                # cv2.imshow('a',cropped_img_with_marker)
             except:
                 sorted_points = points
                 enlarged_points = enlarge_polygon(sorted_points, scale_factor=0.1)
@@ -278,10 +283,11 @@ class MainWindow(QMainWindow):
             points, rgb_binary= cvDetect(cropped_img,thres,mode)
             # cropped_img_with_marker = visual_result(cropped_img, points)
             # except:
-                # print('\033[31m there is something wrong with auto detection\033[0m')
-                # sorted_points, cropped_img_with_marker, thres = None , None, None
-            # cv2.imshow('a',cropped_img_with_marker)
-            # cv2.waitKey()
+            #     print('\033[31m there is something wrong with auto detection\033[0m')
+            #     sorted_points, cropped_img_with_marker, thres = None , None, None
+            # if cropped_img_with_marker is not None:
+            #     cv2.imshow('a',cropped_img_with_marker)
+            #     cv2.waitKey(1)
             # cv2.destroyAllWindows()
             
         else :

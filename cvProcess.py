@@ -24,11 +24,11 @@ def channel_th(r, g, b, threshold):
     r_binary = cv2.threshold(r, threshold['r'], 255, cv2.THRESH_BINARY)[1]
     g_binary = cv2.threshold(g, threshold['g'], 255, cv2.THRESH_BINARY)[1]
     b_binary = cv2.threshold(b, threshold['b'], 255, cv2.THRESH_BINARY)[1]
-    circle_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))  # 膨胀
-    r_binary = cv2.erode(r_binary, circle_kernel, iterations=1)
+    # circle_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))  # 膨胀
+    # r_binary = cv2.erode(r_binary, circle_kernel, iterations=1)
     # g_binary = cv2.erode(g_binary, circle_kernel, iterations=2)
     # b_binary = cv2.erode(b_binary, circle_kernel, iterations=2)
-    r_binary = cv2.erode(r_binary, circle_kernel, iterations=1)
+    # r_binary = cv2.erode(r_binary, circle_kernel, iterations=1)
     # g_binary = cv2.dilate(g_binary, circle_kernel, iterations=2)
     # b_binary = cv2.dilate(b_binary, circle_kernel, iterations=4)
     return r_binary, g_binary, b_binary
@@ -58,8 +58,8 @@ def cvDetect(image, threoloads: dict,mode,offset: QPointF=None) -> np.array:
     threshold = {'r': threoloads['red'], 'g': threoloads['green'], 'b': threoloads['blue']}
     r_th, g_th, b_th = channel_th(r, g, b, threshold)
     b_and_g = b_th & g_th
-    circle_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    b_and_g_o = cv2.morphologyEx(b_and_g, cv2.MORPH_OPEN, circle_kernel, iterations=3)  # 开运算
+    circle_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    b_and_g_o = cv2.morphologyEx(b_and_g, cv2.MORPH_OPEN, circle_kernel, iterations=1)  # 开运算
     # cv2.imshow("b_th_o", b_and_g_o)
     final_img = b_and_g_o & cv2.bitwise_not(r_th)
     # cv2.imshow("final img", final_img)
